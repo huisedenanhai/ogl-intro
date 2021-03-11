@@ -1,0 +1,7 @@
+add_subdirectory(common)
+add_subdirectory(00-hello-world)
+add_subdirectory(01-ebo)
+add_subdirectory(02-uniform)
+add_subdirectory(03-gltf)
+add_subdirectory(04-fbo)
+add_subdirectory(05-pbr)

@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: -2
+IndentCaseLabels: false
+Standard: Cpp11
+IndentWidth: 2
+AllowShortFunctionsOnASingleLine: Empty
+BinPackParameters: false
+BinPackArguments: false
+AlignTrailingComments: true
