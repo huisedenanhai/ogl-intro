@@ -115,9 +115,19 @@ uniform float exposure;
 
 layout(location = 0) out vec4 frag_color;
 
+vec3 aces_approx(vec3 v)
+{
+  float a = 2.51f;
+  float b = 0.03f;
+  float c = 2.43f;
+  float d = 0.59f;
+  float e = 0.14f;
+  return (v * (a * v + b))/(v * (c * v + d) + e);
+}
+
 void main() {
   vec3 hdr = texture(main_tex, uv_fs).rgb;
-  vec3 ldr = 1.0 - exp(-exposure * hdr);
+  vec3 ldr = aces_approx(hdr * exposure);
   vec3 gamma_corrected = pow(ldr, vec3(1.0 / 2.2));
   frag_color = vec4(gamma_corrected, 1.0);
 }
