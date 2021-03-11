@@ -19,10 +19,12 @@ void Gltf::load_model(const fs::path &name) {
   auto model_path = Data::resolve(name);
   bool ret = false;
   auto extension = model_path.extension();
+  auto model_path_str = model_path.string();
   if (extension == ".gltf") {
-    ret = loader.LoadASCIIFromFile(&model, &err, &warn, model_path.c_str());
+    ret = loader.LoadASCIIFromFile(&model, &err, &warn, model_path_str.c_str());
   } else if (extension == ".glb") {
-    ret = loader.LoadBinaryFromFile(&model, &err, &warn, model_path.c_str());
+    ret =
+        loader.LoadBinaryFromFile(&model, &err, &warn, model_path_str.c_str());
   } else {
     std::stringstream ss;
     ss << "invalid file extension for GLTF: " << extension
@@ -217,16 +219,16 @@ void Gltf::load_meshes(tinygltf::Model &model) {
       }
 
       if (indices.empty()) {
-        primitives.emplace_back(
-            Primitive{std::make_unique<Mesh>(
-                          vertices.data(), vertices.size(), nullptr, 0),
-                      prim.material});
+        primitives.emplace_back(Primitive{
+            std::make_unique<Mesh>(
+                vertices.data(), (uint32_t)vertices.size(), nullptr, 0),
+            prim.material});
       } else {
         primitives.emplace_back(
             Primitive{std::make_unique<Mesh>(vertices.data(),
-                                             vertices.size(),
+                                             (uint32_t)vertices.size(),
                                              indices.data(),
-                                             indices.size()),
+                                             (uint32_t)indices.size()),
                       prim.material});
       }
     }

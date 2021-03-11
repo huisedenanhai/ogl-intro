@@ -3,7 +3,7 @@
 #include <stb_image.h>
 
 Texture2D::Texture2D(const fs::path &name, TextureSettings *settings) {
-  auto full_path = Data::resolve(name);
+  auto full_path = Data::resolve(name).string();
   stbi_set_flip_vertically_on_load(true);
   int width, height, channels;
   unsigned char *data =

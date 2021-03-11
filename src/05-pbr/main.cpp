@@ -198,7 +198,7 @@ private:
   float _light_pitch = glm::radians(60.0f);
   float _light_strength = 1.0f;
   glm::vec3 _light_color = glm::vec3(1.0, 1.0, 1.0);
-  float _env_strength = 1.5f;
+  float _env_strength = 1.0f;
   glm::vec3 _env_color = glm::vec3(1.0, 1.0, 1.0);
 
   std::vector<std::unique_ptr<PbrMaterial>> _materials;

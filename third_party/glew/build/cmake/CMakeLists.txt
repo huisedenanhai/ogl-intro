@@ -2,29 +2,27 @@ if ( NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Build type" )
 endif ()
 
-project (glew C)
+project (glew)
 
 cmake_minimum_required (VERSION 2.8.12)
 
 include(GNUInstallDirs)
 
-if(POLICY CMP0003)
+if (COMMAND cmake_policy)
   cmake_policy (SET CMP0003 NEW)
-endif()
-
-if(POLICY CMP0042)
   cmake_policy (SET CMP0042 NEW)
 endif()
 
 set(CMAKE_DEBUG_POSTFIX d)
 
+option (BUILD_UTILS "utilities" ON)
 option (GLEW_REGAL "Regal mode" OFF)
 option (GLEW_OSMESA "OSMesa mode" OFF)
 if (APPLE)
     option (BUILD_FRAMEWORK "Build Framework bundle for OSX" OFF)
 endif ()
 
-set (GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 # get version from config/version
 file (STRINGS ${GLEW_DIR}/config/version  _VERSION_MAJOR_STRING REGEX "GLEW_MAJOR[ ]*=[ ]*[0-9]+.*")
@@ -41,8 +39,9 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package (OpenGL REQUIRED)
 
-# X11 required except for Windows and Apple OSX platforms
-if (NOT WIN32 AND NOT APPLE)
+# X11 required when builing visualinfo and glewinfo,
+# but not for Windows or Apple OSX platforms
+if (BUILD_UTILS AND NOT WIN32 AND NOT APPLE)
   find_package (X11)
 endif()
 
@@ -53,7 +52,7 @@ else ()
   set (DLL_PREFIX lib)
 endif ()
 
-set (GLEW_LIBRARIES ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
+set (GLEW_LIBRARIES ${OPENGL_LIBRARIES})
 
 add_definitions (-DGLEW_NO_GLU)
 
@@ -82,19 +81,9 @@ if (GLEW_OSMESA)
   set (X11_LIBRARIES)
 endif ()
 
-#### EGL ####
-
-if (GLEW_EGL AND UNIX)
-  add_definitions (-DGLEW_EGL)
-  if (OpenGL::EGL)
-    message (FATAL_ERROR "EGL library set but not found.")
-  endif()
-  set (GLEW_LIBRARIES ${OPENGL_LIBRARIES} ${OPENGL_egl_LIBRARY})
-endif ()
-
 #### GLEW ####
 
-include_directories (${GLEW_DIR}/include ${X11_INCLUDE_DIR})
+include_directories (${GLEW_DIR}/include)
 
 set (GLEW_PUBLIC_HEADERS_FILES ${GLEW_DIR}/include/GL/wglew.h ${GLEW_DIR}/include/GL/glew.h ${GLEW_DIR}/include/GL/glxew.h)
 set (GLEW_SRC_FILES ${GLEW_DIR}/src/glew.c)
@@ -120,8 +109,6 @@ if (MSVC)
   target_compile_options (glew_s PRIVATE -GS-)
   # remove stdlib dependency
   target_link_libraries (glew LINK_PRIVATE -nodefaultlib -noentry)
-  target_link_libraries (glew LINK_PRIVATE libvcruntime.lib)
-  target_link_libraries (glew LINK_PRIVATE msvcrt.lib )
   string(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 elseif (WIN32 AND ((CMAKE_C_COMPILER_ID MATCHES "GNU") OR (CMAKE_C_COMPILER_ID MATCHES "Clang")))
   # remove stdlib dependency on windows with GCC and Clang (for similar reasons
@@ -174,6 +161,31 @@ install ( TARGETS ${targets_to_install}
           FRAMEWORK DESTINATION ${CMAKE_INSTALL_PREFIX}
 )
 
+if (BUILD_UTILS)
+  set (GLEWINFO_SRC_FILES ${GLEW_DIR}/src/glewinfo.c)
+  if (WIN32)
+    list (APPEND GLEWINFO_SRC_FILES ${GLEW_DIR}/build/glewinfo.rc)
+  endif ()
+  add_executable (glewinfo ${GLEWINFO_SRC_FILES})
+  target_link_libraries (glewinfo glew)
+  if (NOT WIN32)
+    target_link_libraries(glewinfo ${X11_LIBRARIES})
+  endif ()
+
+  set (VISUALINFO_SRC_FILES ${GLEW_DIR}/src/visualinfo.c)
+  if (WIN32)
+    list (APPEND VISUALINFO_SRC_FILES ${GLEW_DIR}/build/visualinfo.rc)
+  endif ()
+  add_executable (visualinfo ${VISUALINFO_SRC_FILES})
+  target_link_libraries (visualinfo glew)
+  if (NOT WIN32)
+    target_link_libraries(visualinfo ${X11_LIBRARIES})
+  endif ()
+
+  install ( TARGETS glewinfo visualinfo
+            DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif ()
+
 set (prefix ${CMAKE_INSTALL_PREFIX})
 set (exec_prefix ${CMAKE_INSTALL_PREFIX})
 set (libdir ${CMAKE_INSTALL_FULL_LIBDIR})
@@ -188,9 +200,9 @@ if (APPLE)
   set (requireslib)
 endif ()
 
-configure_file (${GLEW_DIR}/glew.pc.in ${CMAKE_CURRENT_BINARY_DIR}/glew.pc @ONLY)
+configure_file (${GLEW_DIR}/glew.pc.in ${GLEW_DIR}/glew.pc @ONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/glew.pc
+install(FILES ${GLEW_DIR}/glew.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
@@ -217,3 +229,13 @@ if(MAYBE_EXPORT)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/glew)
 endif()
 
+if(NOT TARGET uninstall)
+  configure_file(
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+      IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P
+      ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()

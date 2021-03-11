@@ -180,7 +180,7 @@ void Application::screen_shot() {
   data.resize(width * height * 4);
   glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
 
-  auto output_path = fs::absolute(get_screen_shot_filename());
+  auto output_path = fs::absolute(get_screen_shot_filename()).string();
 
   stbi_flip_vertically_on_write(true);
   stbi_write_png(output_path.c_str(), width, height, 4, data.data(), 0);

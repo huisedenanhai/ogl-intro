@@ -13,8 +13,8 @@ void Renderer::init_bilt() {
       {{-1.0f, 3.0f, 0.0f}, {}, {}, {0.0f, 2.0f}},  // left-up
   };
 
-  _full_screen_triangle =
-      std::make_unique<Mesh>(vertices.data(), vertices.size(), nullptr, 0);
+  _full_screen_triangle = std::make_unique<Mesh>(
+      vertices.data(), (uint32_t)vertices.size(), nullptr, 0);
 }
 
 void Renderer::bilt(Texture2D *tex, IMaterial *material) {

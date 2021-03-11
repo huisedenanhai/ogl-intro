@@ -36,7 +36,7 @@ Shader::Shader(const char *text, GLenum stage, const char *name) {
 Shader::Shader(const fs::path &name, GLenum stage) {
   auto data = Data::load(name);
   data.push_back(0);
-  _id = compile_shader((const char *)data.data(), stage, name.c_str());
+  _id = compile_shader((const char *)data.data(), stage, name.string().c_str());
 }
 
 Shader::~Shader() {

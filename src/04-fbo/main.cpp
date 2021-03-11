@@ -28,8 +28,8 @@ private:
         {{-1.0f, 3.0f, 0.0f}, {}, {}, {0.0f, 2.0f}},  // left-up
     };
 
-    _full_screen_triangle =
-        std::make_unique<Mesh>(vertices.data(), vertices.size(), nullptr, 0);
+    _full_screen_triangle = std::make_unique<Mesh>(
+        vertices.data(), (uint32_t)vertices.size(), nullptr, 0);
     _base_color_material = std::make_unique<BaseColorMaterial>();
     _chromatic_aberration_material =
         std::make_unique<ChromaticAberrationMaterial>();
