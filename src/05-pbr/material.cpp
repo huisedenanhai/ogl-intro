@@ -116,7 +116,10 @@ uniform float exposure;
 layout(location = 0) out vec4 frag_color;
 
 void main() {
-  frag_color = 1.0 - exp(-exposure * texture(main_tex, uv_fs));
+  vec3 hdr = texture(main_tex, uv_fs).rgb;
+  vec3 ldr = 1.0 - exp(-exposure * hdr);
+  vec3 gamma_corrected = pow(ldr, vec3(1.0 / 2.2));
+  frag_color = vec4(gamma_corrected, 1.0);
 }
 )";
 

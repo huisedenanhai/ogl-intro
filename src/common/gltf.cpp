@@ -82,6 +82,8 @@ void Gltf::load_materials(tinygltf::Model &model) {
 }
 
 void Gltf::load_textures(tinygltf::Model &model) {
+  // All textures are loaded linearly. Do gamma correction in shader if
+  // necessary
   for (auto &tex : model.textures) {
     auto &sampler = model.samplers[tex.sampler];
     auto &image = model.images[tex.source];

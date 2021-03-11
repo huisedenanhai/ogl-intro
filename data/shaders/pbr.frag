@@ -26,8 +26,13 @@ uniform sampler2D emission_tex;
 
 layout(location = 0) out vec4 frag_color;
 
+vec3 srgb_to_linear(vec3 srgb) {
+  return pow(srgb, vec3(2.2));
+}
+
 vec4 get_base_color() {
-  return texture(base_color_tex, uv0_vs) * base_color_factor;
+  vec4 raw = texture(base_color_tex, uv0_vs);
+  return vec4(srgb_to_linear(raw.rgb), raw.a) * base_color_factor;
 }
 
 vec3 decode_normal_ts() {
@@ -48,7 +53,7 @@ vec3 occlude_color(vec3 unocclude_color) {
 }
 
 vec3 get_emission() {
-  return texture(emission_tex, uv0_vs).xyz * emission_factor;
+  return srgb_to_linear(texture(emission_tex, uv0_vs).xyz) * emission_factor;
 }
 
 // use a simplified lighting model of filament, not optimized.
