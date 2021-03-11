@@ -93,18 +93,18 @@ private:
       return;
     }
     _color_attachment = std::make_unique<Texture2D>(nullptr,
+                                                    GL_UNSIGNED_BYTE,
                                                     _screen_fb_width,
                                                     _screen_fb_height,
                                                     GL_RGBA,
-                                                    GL_RGBA,
-                                                    GL_UNSIGNED_BYTE);
+                                                    GL_RGBA);
     _depth_stencil_attachment =
         std::make_unique<Texture2D>(nullptr,
+                                    GL_UNSIGNED_INT_24_8,
                                     _screen_fb_width,
                                     _screen_fb_height,
                                     GL_DEPTH24_STENCIL8,
-                                    GL_DEPTH_STENCIL,
-                                    GL_UNSIGNED_INT_24_8);
+                                    GL_DEPTH_STENCIL);
     Texture2D *color_attachments[] = {_color_attachment.get()};
     _framebuffer = std::make_unique<Framebuffer>(
         color_attachments, 1, _depth_stencil_attachment.get());

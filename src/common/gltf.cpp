@@ -109,10 +109,10 @@ void Gltf::load_textures(tinygltf::Model &model) {
 
     textures.push_back(
         std::make_unique<Texture2D>((uint8_t *)image.image.data(),
+                                    type,
                                     width,
                                     height,
                                     channels,
-                                    type,
                                     &settings));
   }
 }

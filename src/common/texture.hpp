@@ -16,18 +16,18 @@ class Texture2D {
 public:
   Texture2D(const fs::path &name, TextureSettings *settings = nullptr);
   Texture2D(uint8_t *data,
+            GLenum data_type,
             int width,
             int height,
             int channels,
-            GLenum component_type,
             TextureSettings *settings = nullptr);
 
   Texture2D(uint8_t *data,
+            GLenum data_type,
             int width,
             int height,
             GLenum internal_format,
             GLenum format,
-            GLenum component_type,
             TextureSettings *settings = nullptr);
 
   ~Texture2D();
@@ -42,17 +42,17 @@ private:
   int _width, _height;
 
   void init(uint8_t *data,
+            GLenum data_type,
             int width,
             int height,
             int channels,
-            GLenum component_type,
             TextureSettings *settings = nullptr);
 
   void init(uint8_t *data,
+            GLenum data_type,
             int width,
             int height,
             GLenum internal_format,
             GLenum format,
-            GLenum component_type,
             TextureSettings *settings = nullptr);
 };

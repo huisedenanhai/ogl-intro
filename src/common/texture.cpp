@@ -13,17 +13,17 @@ Texture2D::Texture2D(const fs::path &name, TextureSettings *settings) {
     ss << "failed to load image " << full_path;
     throw std::runtime_error(ss.str());
   }
-  init(data, width, height, channels, GL_UNSIGNED_BYTE, settings);
+  init(data, GL_UNSIGNED_BYTE, width, height, channels, settings);
 
   stbi_image_free(data);
 }
 
 void Texture2D::init(uint8_t *data,
+                     GLenum data_type,
                      int width,
                      int height,
                      GLenum internal_format,
                      GLenum format,
-                     GLenum component_type,
                      TextureSettings *settings) {
   _width = width;
   _height = height;
@@ -38,23 +38,16 @@ void Texture2D::init(uint8_t *data,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, settings->wrap_t);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settings->min_filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settings->max_filter);
-  glTexImage2D(GL_TEXTURE_2D,
-               0,
-               format,
-               _width,
-               _height,
-               0,
-               format,
-               component_type,
-               data);
+  glTexImage2D(
+      GL_TEXTURE_2D, 0, format, _width, _height, 0, format, data_type, data);
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void Texture2D::init(uint8_t *data,
+                     GLenum data_type,
                      int width,
                      int height,
                      int channels,
-                     GLenum component_type,
                      TextureSettings *settings) {
   GLenum format = GL_RGBA;
   if (channels == 1) {
@@ -66,26 +59,26 @@ void Texture2D::init(uint8_t *data,
   if (channels == 3) {
     format = GL_RGB;
   }
-  init(data, width, height, format, format, component_type, settings);
+  init(data, data_type, width, height, format, format, settings);
 }
 
 Texture2D::Texture2D(uint8_t *data,
+                     GLenum data_type,
                      int width,
                      int height,
                      int channels,
-                     GLenum component_type,
                      TextureSettings *settings) {
-  init(data, width, height, channels, component_type, settings);
+  init(data, data_type, width, height, channels, settings);
 }
 
 Texture2D::Texture2D(uint8_t *data,
+                     GLenum data_type,
                      int width,
                      int height,
                      GLenum internal_format,
                      GLenum format,
-                     GLenum component_type,
                      TextureSettings *settings) {
-  init(data, width, height, internal_format, format, component_type, settings);
+  init(data, data_type, width, height, internal_format, format, settings);
 }
 
 Texture2D::~Texture2D() {
