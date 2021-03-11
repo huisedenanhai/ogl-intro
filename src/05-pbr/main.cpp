@@ -173,9 +173,9 @@ private:
     _color_attachment = std::make_unique<Texture2D>(nullptr,
                                                     _screen_fb_width,
                                                     _screen_fb_height,
+                                                    GL_RGBA16F,
                                                     GL_RGBA,
-                                                    GL_RGBA,
-                                                    GL_HALF_FLOAT);
+                                                    GL_FLOAT);
     _depth_stencil_attachment =
         std::make_unique<Texture2D>(nullptr,
                                     _screen_fb_width,

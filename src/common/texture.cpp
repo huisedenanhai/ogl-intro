@@ -40,7 +40,7 @@ void Texture2D::init(uint8_t *data,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settings->max_filter);
   glTexImage2D(GL_TEXTURE_2D,
                0,
-               format,
+               internal_format,
                _width,
                _height,
                0,
