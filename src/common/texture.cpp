@@ -38,8 +38,15 @@ void Texture2D::init(uint8_t *data,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, settings->wrap_t);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, settings->min_filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, settings->max_filter);
-  glTexImage2D(
-      GL_TEXTURE_2D, 0, format, _width, _height, 0, format, data_type, data);
+  glTexImage2D(GL_TEXTURE_2D,
+               0,
+               internal_format,
+               _width,
+               _height,
+               0,
+               format,
+               data_type,
+               data);
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
