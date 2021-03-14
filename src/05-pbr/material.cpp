@@ -20,8 +20,10 @@ struct ParamsBlock {
 };
 } // namespace
 
-PbrMaterial::PbrMaterial() {
-  _program = Program::create_from_files("shaders/pbr.vert", "shaders/pbr.frag");
+PbrMaterial::PbrMaterial(bool show_base_color) {
+  const char *frag_file =
+      show_base_color ? "shaders/pbr_base_color.frag" : "shaders/pbr.frag";
+  _program = Program::create_from_files("shaders/pbr.vert", frag_file);
 
 #define INIT_UNIFORM_LOCATION(name)                                            \
   _##name##_location = glGetUniformLocation(_program->get(), #name "_tex")

@@ -21,6 +21,7 @@ void Renderer::bilt(Texture2D *tex, IMaterial *material) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
   material->model = glm::identity<glm::mat4>();
   material->view = glm::identity<glm::mat4>();
   material->projection = glm::identity<glm::mat4>();

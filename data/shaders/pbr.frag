@@ -24,7 +24,7 @@ uniform sampler2D normal_tex;
 uniform sampler2D occlusion_tex;
 uniform sampler2D emission_tex;
 
-layout(location = 0) out vec4 frag_color;
+layout(location = 0) out vec4 frag_color_out;
 
 vec3 srgb_to_linear(vec3 srgb) {
   return pow(srgb, vec3(2.2));
@@ -144,6 +144,7 @@ void main() {
   vec3 n_vs = get_normal_vs();
   vec3 l_vs = light_dir_vs;
   vec3 v_vs = -normalize(position_vs);
+  n_vs = faceforward(n_vs, -v_vs, n_vs);
 
   vec4 base_color = get_base_color();
 
@@ -168,5 +169,5 @@ void main() {
   vec3 emission = get_emission();
   vec3 environment = (fd + fe) * occlude_color(env_irradiance);
 
-  frag_color = vec4(directional + emission + environment, base_color.a);
+  frag_color_out = vec4(directional + emission + environment, base_color.a);
 }

@@ -25,7 +25,7 @@ public:
   glm::vec3 light_radiance;
   glm::vec3 env_irradiance;
 
-  PbrMaterial();
+  PbrMaterial(bool show_base_color);
   void use();
 
 private:

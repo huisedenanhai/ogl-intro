@@ -25,12 +25,10 @@ private:
     _tone_mapping_material = std::make_unique<ToneMappingMaterial>();
     _renderer = std::make_unique<Renderer>();
 
-    for (auto &mat : _scene->materials) {
-      auto pbr_mat = std::make_unique<PbrMaterial>();
+    auto init_mat = [&](PbrMaterial *pbr_mat, Gltf::Material *mat) {
 #define ASSIGN_TEXTURE(name)                                                   \
   pbr_mat->name = mat->name < 0 ? nullptr : _scene->textures[mat->name].get()
 #define ASSIGN_FIELD(name) pbr_mat->name = mat->name
-
       ASSIGN_TEXTURE(base_color);
       ASSIGN_FIELD(base_color_factor);
       ASSIGN_FIELD(metallic_factor);
@@ -54,8 +52,16 @@ private:
         pbr_mat->mode = PbrMaterial::Blend;
         break;
       }
+    };
 
-      _materials.emplace_back(std::move(pbr_mat));
+    for (auto &mat : _scene->materials) {
+      auto pbr_mat = std::make_unique<PbrMaterial>(false);
+      init_mat(pbr_mat.get(), mat.get());
+      auto base_color_mat = std::make_unique<PbrMaterial>(true);
+      init_mat(base_color_mat.get(), mat.get());
+
+      _pbr_materials.emplace_back(std::move(pbr_mat));
+      _base_color_materials.emplace_back(std::move(base_color_mat));
     }
   }
 
@@ -117,38 +123,45 @@ private:
     glm::mat4 view = _camera->view();
     glm::mat4 projection = _camera->projection(aspect);
 
-    auto draw_mode = [&](PbrMaterial::Mode mode) {
-      for (auto &draw : _scene->draws) {
-        for (auto &prim : _scene->meshes[draw.index]) {
-          auto *mat = _materials[prim.material].get();
-          if (mat->mode != mode) {
-            continue;
+    auto draw_mode =
+        [&](PbrMaterial::Mode mode,
+            const std::vector<std::unique_ptr<PbrMaterial>> &materials) {
+          for (auto &draw : _scene->draws) {
+            for (auto &prim : _scene->meshes[draw.index]) {
+              auto *mat = materials[prim.material].get();
+              if (mat->mode != mode) {
+                continue;
+              }
+              mat->model = draw.transform;
+              mat->view = view;
+              mat->projection = projection;
+
+              glm::vec3 light_dir_ws =
+                  polar_to_cartesian(_light_yaw, _light_pitch);
+              glm::vec3 light_dir_vs = view * glm::vec4(light_dir_ws, 0.0f);
+
+              mat->light_dir_vs = glm::normalize(light_dir_vs);
+              mat->light_radiance = _light_color * _light_strength;
+              mat->env_irradiance = env_irradiance;
+
+              mat->use();
+              prim.mesh->draw();
+            }
           }
-          mat->model = draw.transform;
-          mat->view = view;
-          mat->projection = projection;
-
-          glm::vec3 light_dir_ws = polar_to_cartesian(_light_yaw, _light_pitch);
-          glm::vec3 light_dir_vs = view * glm::vec4(light_dir_ws, 0.0f);
-
-          mat->light_dir_vs = glm::normalize(light_dir_vs);
-          mat->light_radiance = _light_color * _light_strength;
-          mat->env_irradiance = env_irradiance;
-
-          mat->use();
-          prim.mesh->draw();
-        }
-      }
-    };
+        };
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
-    draw_mode(PbrMaterial::Opaque);
+    draw_mode(PbrMaterial::Opaque, _pbr_materials);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     // disable z-write for transparent objects
     glDepthMask(GL_FALSE);
-    draw_mode(PbrMaterial::Blend);
+    glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+    // tint objects covered by transparent ones
+    draw_mode(PbrMaterial::Blend, _base_color_materials);
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    draw_mode(PbrMaterial::Blend, _pbr_materials);
   }
 
   void draw() {
@@ -184,8 +197,10 @@ private:
                                     GL_DEPTH24_STENCIL8,
                                     GL_DEPTH_STENCIL);
     Texture2D *color_attachments[] = {_color_attachment.get()};
-    _framebuffer = std::make_unique<Framebuffer>(
-        color_attachments, 1, _depth_stencil_attachment.get());
+    _framebuffer =
+        std::make_unique<Framebuffer>(color_attachments,
+                                      std::size(color_attachments),
+                                      _depth_stencil_attachment.get());
   }
 
   void update() override {
@@ -201,7 +216,8 @@ private:
   float _env_strength = 1.0f;
   glm::vec3 _env_color = glm::vec3(1.0, 1.0, 1.0);
 
-  std::vector<std::unique_ptr<PbrMaterial>> _materials;
+  std::vector<std::unique_ptr<PbrMaterial>> _pbr_materials;
+  std::vector<std::unique_ptr<PbrMaterial>> _base_color_materials;
   std::unique_ptr<ToneMappingMaterial> _tone_mapping_material{};
 
   int _screen_fb_width, _screen_fb_height;
