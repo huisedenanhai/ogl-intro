@@ -29,7 +29,12 @@ git clone https://github.com/huisedenanhai/ogl-intro.git
 
 ### Visual Studio
 
-直接打开文件夹即可。
+1. 安装[CMake](https://cmake.org/)
+2. 打开CMake
+3. 选择项目文件夹和输出文件夹
+4. 点击Configure
+5. Configure结束后点击Generate
+6. 打开输出文件夹中的ogl-intro.sln
 
 ### Xcode
 
