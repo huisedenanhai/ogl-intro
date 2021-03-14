@@ -24,11 +24,9 @@ public:
   };
 
   struct Material {
-    enum Mode {
-      Opaque,
-      Blend
-    };
+    enum Mode { Opaque, Blend };
     Mode mode;
+    bool double_sided;
     glm::vec4 base_color_factor;
     int base_color;
     float metallic_factor;

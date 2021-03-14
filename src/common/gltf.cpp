@@ -76,6 +76,7 @@ void Gltf::load_materials(tinygltf::Model &model) {
     if (mat.alphaMode == "BLEND") {
       m->mode = Material::Blend;
     }
+    m->double_sided = mat.doubleSided;
 
     materials.emplace_back(std::move(m));
   }

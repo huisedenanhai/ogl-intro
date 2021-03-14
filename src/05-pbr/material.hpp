@@ -9,6 +9,7 @@ public:
   enum Mode { Opaque, Blend };
 
   Mode mode;
+  bool double_sided;
   Texture2D *base_color;
   glm::vec4 base_color_factor;
   float metallic_factor;

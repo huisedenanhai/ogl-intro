@@ -31,6 +31,7 @@ private:
 #define ASSIGN_FIELD(name) pbr_mat->name = mat->name
       ASSIGN_TEXTURE(base_color);
       ASSIGN_FIELD(base_color_factor);
+      ASSIGN_FIELD(double_sided);
       ASSIGN_FIELD(metallic_factor);
       ASSIGN_FIELD(roughness_factor);
       ASSIGN_TEXTURE(metallic_roughness);

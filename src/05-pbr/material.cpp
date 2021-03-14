@@ -89,6 +89,12 @@ void PbrMaterial::use() {
 
   glBindBufferBase(GL_UNIFORM_BUFFER, 0, _transform_buffer->get());
   glBindBufferBase(GL_UNIFORM_BUFFER, 1, _params_buffer->get());
+
+  if (double_sided) {
+    glDisable(GL_CULL_FACE);
+  } else {
+    glEnable(GL_CULL_FACE);
+  }
 }
 
 static const char *vertex_tone_mapping_source = R"(
