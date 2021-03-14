@@ -30,9 +30,13 @@ vec3 srgb_to_linear(vec3 srgb) {
   return pow(srgb, vec3(2.2));
 }
 
+vec4 srgb_to_linear(vec4 srgb) {
+  return pow(srgb, vec4(2.2));
+}
+
 vec4 get_base_color() {
   vec4 raw = texture(base_color_tex, uv0_vs);
-  return vec4(srgb_to_linear(raw.rgb), raw.a) * base_color_factor;
+  return srgb_to_linear(raw) * base_color_factor;
 }
 
 vec3 decode_normal_ts() {
