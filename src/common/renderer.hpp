@@ -18,10 +18,10 @@ class Renderer {
 public:
   Renderer();
 
-  void bilt(Texture2D *tex, IMaterial *material);
+  void blit(Texture2D *tex, IMaterial *material);
 
 private:
-  void init_bilt();
+  void init_blit();
 
   std::unique_ptr<Mesh> _full_screen_triangle;
 };

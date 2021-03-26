@@ -172,7 +172,7 @@ private:
 
     // blit texture to screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    _renderer->bilt(_color_attachment.get(), _tone_mapping_material.get());
+    _renderer->blit(_color_attachment.get(), _tone_mapping_material.get());
   }
 
   void update_frame_buffer() {
