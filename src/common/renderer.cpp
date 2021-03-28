@@ -2,10 +2,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Renderer::Renderer() {
-  init_bilt();
+  init_blit();
 }
 
-void Renderer::init_bilt() {
+void Renderer::init_blit() {
   // draw a big triangle that cover the full screen
   std::vector<Mesh::Vertex> vertices = {
       {{-1.0f, -1.0f, 0.0f}, {}, {}, {0.0f, 0.0f}}, // left-down
@@ -17,7 +17,7 @@ void Renderer::init_bilt() {
       vertices.data(), (uint32_t)vertices.size(), nullptr, 0);
 }
 
-void Renderer::bilt(Texture2D *tex, IMaterial *material) {
+void Renderer::blit(Texture2D *tex, IMaterial *material) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
