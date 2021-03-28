@@ -51,4 +51,7 @@ private:
   void load_textures(tinygltf::Model &model);
   void load_meshes(tinygltf::Model &model);
   void load_scene(tinygltf::Model &model);
+
+  uint32_t _white_tex_index;
+  uint32_t _default_normal_tex_index;
 };

@@ -120,7 +120,8 @@ vec3 specular_BRDF(BRDF brdf, vec3 n, vec3 v, vec3 l) {
   vec3 F = F_Schlick(LoH, f0);
   float V = V_SmithGGXCorrelated(NoV, NoL, roughness);
 
-  return D * V * F;
+  // remove NAN
+  return max(D * V * F, vec3(0.0));
 }
 
 vec3 diffuse_BRDF(BRDF brdf) {

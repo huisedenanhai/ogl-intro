@@ -53,22 +53,26 @@ void Gltf::load_model(const fs::path &name) {
 }
 
 void Gltf::load_materials(tinygltf::Model &model) {
+  auto tex = [](int index, int default_index) {
+    return index < 0 ? default_index : index;
+  };
   for (auto &mat : model.materials) {
     auto &pbr = mat.pbrMetallicRoughness;
     auto m = std::make_unique<Material>();
-    m->base_color = pbr.baseColorTexture.index;
+    m->base_color = tex(pbr.baseColorTexture.index, _white_tex_index);
     m->base_color_factor = glm::vec4(pbr.baseColorFactor[0],
                                      pbr.baseColorFactor[1],
                                      pbr.baseColorFactor[2],
                                      pbr.baseColorFactor[3]);
     m->metallic_factor = (float)pbr.metallicFactor;
     m->roughness_factor = (float)pbr.roughnessFactor;
-    m->metallic_roughness = pbr.metallicRoughnessTexture.index;
-    m->normal = mat.normalTexture.index;
+    m->metallic_roughness =
+        tex(pbr.metallicRoughnessTexture.index, _white_tex_index);
+    m->normal = tex(mat.normalTexture.index, _default_normal_tex_index);
     m->normal_scale = (float)mat.normalTexture.scale;
-    m->occlusion = mat.occlusionTexture.index;
+    m->occlusion = tex(mat.occlusionTexture.index, _white_tex_index);
     m->occlusion_strength = (float)mat.occlusionTexture.strength;
-    m->emission = mat.emissiveTexture.index;
+    m->emission = tex(mat.emissiveTexture.index, _white_tex_index);
     m->emission_factor = glm::vec3(
         mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2]);
 
@@ -116,6 +120,16 @@ void Gltf::load_textures(tinygltf::Model &model) {
                                     channels,
                                     &settings));
   }
+  auto add_default_tex = [&](uint8_t *color) {
+    auto index = (uint32_t)(textures.size());
+    textures.push_back(
+        std::make_unique<Texture2D>(color, GL_UNSIGNED_BYTE, 1, 1, 4));
+    return index;
+  };
+  uint8_t white[] = {255, 255, 255, 255};
+  uint8_t normal[] = {128, 128, 255, 255};
+  _white_tex_index = add_default_tex(white);
+  _default_normal_tex_index = add_default_tex(normal);
 }
 
 void Gltf::load_meshes(tinygltf::Model &model) {
