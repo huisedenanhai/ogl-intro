@@ -21,13 +21,14 @@ public:
   float occlusion_strength;
   Texture2D *emission;
   glm::vec3 emission_factor;
+  Texture2D *lut;
 
   glm::vec3 light_dir_vs;
   glm::vec3 light_radiance;
-  glm::vec3 env_irradiance;
+  glm::vec3 env_radiance;
 
-  PbrMaterial(bool show_base_color);
-  void use();
+  explicit PbrMaterial(bool show_base_color);
+  void use() override;
 
 private:
   std::unique_ptr<Program> _program;
@@ -36,6 +37,7 @@ private:
   GLint _normal_location;
   GLint _occlusion_location;
   GLint _emission_location;
+  GLint _lut_location;
 
   std::unique_ptr<Buffer> _transform_buffer;
   std::unique_ptr<Buffer> _params_buffer;
@@ -46,11 +48,21 @@ public:
   float exposure = 1.0f;
 
   ToneMappingMaterial();
-  void use();
+  void use() override;
 
 private:
   std::unique_ptr<Program> _program;
   GLint _transform_location;
   GLint _image_location;
   GLint _exposure_location;
+};
+
+class PrecomputeEnvBrdfMaterial : public IMaterial {
+public:
+  PrecomputeEnvBrdfMaterial();
+  void use() override;
+
+private:
+  std::unique_ptr<Program> _program;
+  GLint _transform_location;
 };

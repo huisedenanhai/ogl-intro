@@ -64,6 +64,9 @@ private:
       _pbr_materials.emplace_back(std::move(pbr_mat));
       _base_color_materials.emplace_back(std::move(base_color_mat));
     }
+
+    _env_brdf_material = std::make_unique<PrecomputeEnvBrdfMaterial>();
+    calculate_env_brdf_lut();
   }
 
   void draw_ui() {
@@ -108,11 +111,36 @@ private:
       ImGui::SliderFloat("Strength", &_env_strength, 0.0f, 10.0f);
       ImGui::PopID();
     }
+    if (ImGui::CollapsingHeader("Environment BRDF")) {
+      ImGui::PushID(id++);
+      if (ImGui::Button("Recalculate")) {
+        calculate_env_brdf_lut();
+      }
+      ImGui::Text("LUT");
+      ImGui::Image(reinterpret_cast<ImTextureID>(_env_brdf_lut->get()),
+                   ImVec2(_lut_size, _lut_size));
+      ImGui::PopID();
+    }
+  }
+
+  void calculate_env_brdf_lut() {
+    _env_brdf_lut = std::make_unique<Texture2D>(
+        nullptr, GL_FLOAT, _lut_size, _lut_size, GL_RGBA16F, GL_RGBA);
+
+    Texture2D *color_attachments[] = {_env_brdf_lut.get()};
+    auto env_brdf_lut_framebuffer = std::make_unique<Framebuffer>(
+        color_attachments, std::size(color_attachments), nullptr);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, env_brdf_lut_framebuffer->get());
+    glViewport(0, 0, _lut_size, _lut_size);
+    _renderer->blit(nullptr, _env_brdf_material.get());
+    glBindTexture(GL_TEXTURE_2D, _env_brdf_lut->get());
+    glGenerateMipmap(GL_TEXTURE_2D);
   }
 
   void draw_scene() {
-    glm::vec3 env_irradiance = _env_color * _env_strength;
-    glClearColor(env_irradiance.x, env_irradiance.y, env_irradiance.z, 1.0);
+    glm::vec3 env_radiance = _env_color * _env_strength;
+    glClearColor(env_radiance.x, env_radiance.y, env_radiance.z, 1.0);
     glViewport(0, 0, _screen_fb_width, _screen_fb_height);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
@@ -143,7 +171,8 @@ private:
 
               mat->light_dir_vs = glm::normalize(light_dir_vs);
               mat->light_radiance = _light_color * _light_strength;
-              mat->env_irradiance = env_irradiance;
+              mat->env_radiance = env_radiance;
+              mat->lut = _env_brdf_lut.get();
 
               mat->use();
               prim.mesh->draw();
@@ -225,6 +254,11 @@ private:
   std::unique_ptr<Texture2D> _color_attachment{};
   std::unique_ptr<Texture2D> _depth_stencil_attachment{};
   std::unique_ptr<Framebuffer> _framebuffer{};
+
+  // LUT (look up table) of pre-integrated BRDF
+  std::unique_ptr<PrecomputeEnvBrdfMaterial> _env_brdf_material{};
+  int _lut_size = 256;
+  std::unique_ptr<Texture2D> _env_brdf_lut{};
 
   std::unique_ptr<Renderer> _renderer;
   std::unique_ptr<ModelViewerCamera> _camera;

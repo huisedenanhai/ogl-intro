@@ -35,12 +35,17 @@ layout(std140) uniform Transform {
   mat4 P;
 };
 
+vec3 safe_normalize(vec3 v) {
+  return dot(v, v) == 0 ? v : normalize(v);
+}
+
 void main() {
   position_vs = transform_position(MV, position_os).xyz;
-  normal_vs = normalize(transform_normal(I_MV, normal_os));
-  tangent_vs = normalize(transform_vector(MV, tangent_os.xyz));
+  normal_vs = safe_normalize(transform_normal(I_MV, normal_os));
+  // use safe normalize to avoid NAN when tangent is not present
+  tangent_vs = safe_normalize(transform_vector(MV, tangent_os.xyz));
   vec3 bitangent_os = calculate_bitangent(normal_os, tangent_os);
-  bitangent_vs = normalize(transform_vector(MV, bitangent_os));
+  bitangent_vs = safe_normalize(transform_vector(MV, bitangent_os));
   uv0_vs = uv0_os;
 
   gl_Position = transform_position(P, position_vs);
