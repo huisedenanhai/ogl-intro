@@ -90,7 +90,6 @@ void Gltf::load_textures(tinygltf::Model &model) {
   // All textures are loaded linearly. Do gamma correction in shader if
   // necessary
   for (auto &tex : model.textures) {
-    auto &sampler = model.samplers[tex.sampler];
     auto &image = model.images[tex.source];
     int width = image.width;
     int height = image.height;
@@ -101,15 +100,18 @@ void Gltf::load_textures(tinygltf::Model &model) {
     }
 
     TextureSettings settings{};
+    if (tex.sampler >= 0) {
+      auto &sampler = model.samplers[tex.sampler];
 
-    settings.wrap_s = sampler.wrapS;
-    settings.wrap_t = sampler.wrapT;
+      settings.wrap_s = sampler.wrapS;
+      settings.wrap_t = sampler.wrapT;
 
-    if (sampler.minFilter > 0) {
-      settings.min_filter = sampler.minFilter;
-    }
-    if (sampler.magFilter > 0) {
-      settings.max_filter = sampler.magFilter;
+      if (sampler.minFilter > 0) {
+        settings.min_filter = sampler.minFilter;
+      }
+      if (sampler.magFilter > 0) {
+        settings.max_filter = sampler.magFilter;
+      }
     }
 
     textures.push_back(
