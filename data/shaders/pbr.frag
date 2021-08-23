@@ -68,10 +68,6 @@ float square(float v) {
   return v * v;
 }
 
-// there is a ton of resouces for the theory of PBR. their basic principles are
-// similar but details may vary, which can be confusing for beginners on this
-// topic, especially when there are typos in the expression.
-//
 // we follow the paper
 // 'Microfacet Models for Refraction through Rough Surfaces'
 // which introduce the GGX distribution to model the scattering of rough glass.
@@ -85,11 +81,13 @@ float D_GGX(float NoH, float roughness) {
   return a2 / (PI * square(a2 * c2 + 1.0 - c2));
 }
 
+// V1 = G1 / (2 (n.v))
 float V1_SmithGGX(float NoV, float roughness) {
   float a2 = square(roughness);
   return 1.0 / (NoV + sqrt(square(NoV) + a2 * (1.0 - square(NoV))));
 }
 
+// V = G / (4 (n.v) (n.l))
 float V_SmithGGX(float NoV, float NoL, float roughness) {
   return V1_SmithGGX(NoV, roughness) * V1_SmithGGX(NoL, roughness);
 }
@@ -120,6 +118,7 @@ vec3 get_reflection(BRDF brdf) {
   return mix(vec3(min_reflectivity), brdf.base_color, brdf.metallic);
 }
 
+// f = DGF / (4 (n.v) (n.l)) = DVF
 vec3 specular_BRDF(BRDF brdf, vec3 n, vec3 v, vec3 l) {
   vec3 h = normalize(v + l);
 
