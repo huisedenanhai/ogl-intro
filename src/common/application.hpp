@@ -30,6 +30,7 @@ protected:
   GLFWwindow *_window{};
 
 private:
+  [[nodiscard]] bool should_draw_profiler_ui() const;
   void draw_profiler_ui() const;
 
   GLFWwindow *create_window(const char *name, int width, int height);

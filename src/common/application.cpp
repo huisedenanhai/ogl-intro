@@ -76,8 +76,11 @@ Application::Application(const char *name, int width, int height)
   MicroProfileGpuInitGL();
   MicroProfileDrawInitGL();
   assert(glGetError() == 0);
-  MicroProfileToggleDisplayMode();
   MicroProfileInitUI();
+
+  auto p = MicroProfileGet();
+  p->nDisplay = MP_DRAW_DETAILED;
+  p->nAllGroupsWanted = 1;
 }
 
 Application::~Application() {
@@ -117,7 +120,7 @@ void Application::run() {
       _need_screen_shot = false;
     }
 
-    if (_display_profiler) {
+    if (should_draw_profiler_ui()) {
       draw_profiler_ui();
     }
 
@@ -214,7 +217,10 @@ void Application::screen_shot() {
 }
 
 void Application::toggle_profiler_ui() {
-  _display_profiler = !_display_profiler;
+  _display_profiler = !should_draw_profiler_ui();
+  if (_display_profiler && MicroProfileGet()->nDisplay == MP_DRAW_OFF) {
+    MicroProfileSetDisplayMode(MP_DRAW_DETAILED);
+  }
 }
 
 void Application::draw_profiler_ui() const {
@@ -247,6 +253,10 @@ void Application::draw_profiler_ui() const {
     MicroProfileDraw(logical_width, logical_height);
     MicroProfileEndDraw();
   }
+}
+
+bool Application::should_draw_profiler_ui() const {
+  return _display_profiler && MicroProfileGet()->nDisplay != MP_DRAW_OFF;
 }
 
 void ModelViewerCamera::draw_ui() {
