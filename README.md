@@ -4,6 +4,15 @@
 
 ![screenshot](data/screenshot.png)
 
+## 功能
+
++ 基础PBR
++ [GLTF](https://github.com/KhronosGroup/glTF) 模型加载
++ 截图
++ [ImGui](https://github.com/ocornut/imgui) 集成
++ [Microprofile](https://github.com/zeux/microprofile) 集成
+  ![screenshot-profile](data/screenshot-profile.png)
+
 ## Download
 
 ```
@@ -40,6 +49,7 @@ git clone https://github.com/huisedenanhai/ogl-intro.git
 
 1. 安装[CMake](https://cmake.org/)
 2. 运行如下指令
+
 ```bash
 cd ogl-intro
 mkdir build

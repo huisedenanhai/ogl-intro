@@ -13,6 +13,14 @@
 #include <stb_image_write.h>
 #include <stdexcept>
 
+// Include order of headers here is important
+#define MICROPROFILE_IMPL
+#include "profile.h"
+#define MICROPROFILEUI_IMPL
+#include <microprofileui.h>
+#define MICROPROFILEDRAW_IMPL
+#include <microprofiledraw.h>
+
 GLFWwindow *
 Application::create_window(const char *name, int width, int height) {
   if (glfwInit() == GLFW_FALSE) {
@@ -36,6 +44,7 @@ Application::create_window(const char *name, int width, int height) {
   glfwSetCursorPosCallback(window, window_cursor_position_callback);
   glfwSetCursorEnterCallback(window, window_cursor_enter_callback);
   glfwSetMouseButtonCallback(window, window_mouse_button_callback);
+  glfwSetScrollCallback(window, window_scroll_callback);
 
   glfwMakeContextCurrent(window);
 
@@ -62,9 +71,17 @@ Application::create_window(const char *name, int width, int height) {
 Application::Application(const char *name, int width, int height)
     : _frame_time_samples(30) {
   _window = create_window(name, width, height);
+
+  MicroProfileOnThreadCreate("Main");
+  MicroProfileGpuInitGL();
+  MicroProfileDrawInitGL();
+  assert(glGetError() == 0);
+  MicroProfileToggleDisplayMode();
+  MicroProfileInitUI();
 }
 
 Application::~Application() {
+  MicroProfileShutdown();
   ImGui::DestroyContext();
   glfwDestroyWindow(_window);
   glfwTerminate();
@@ -90,16 +107,25 @@ void Application::run() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    update();
+    {
+      MICROPROFILE_SCOPEI("Main", "Update", 0x726191);
+      update();
+    }
+
     if (_need_screen_shot) {
       screen_shot();
       _need_screen_shot = false;
     }
 
+    if (_display_profiler) {
+      draw_profiler_ui();
+    }
+
+    MicroProfileFlip();
+    int fb_width, fb_height;
+    glfwGetFramebufferSize(_window, &fb_width, &fb_height);
     ImGui::Render();
-    int width, height;
-    glfwGetFramebufferSize(_window, &width, &height);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, fb_width, fb_height);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(_window);
@@ -185,6 +211,42 @@ void Application::screen_shot() {
   stbi_flip_vertically_on_write(true);
   stbi_write_png(output_path.c_str(), width, height, 4, data.data(), 0);
   std::cout << "screen shot written to " << output_path << std::endl;
+}
+
+void Application::toggle_profiler_ui() {
+  _display_profiler = !_display_profiler;
+}
+
+void Application::draw_profiler_ui() const {
+  // frame buffer size and window logical size will be different on high DPI
+  // display
+  int fb_width, fb_height;
+  glfwGetFramebufferSize(_window, &fb_width, &fb_height);
+  int logical_width, logical_height;
+  glfwGetWindowSize(_window, &logical_width, &logical_height);
+
+  auto &io = ImGui::GetIO();
+  MicroProfileMousePosition(static_cast<int>(io.MousePos.x),
+                            static_cast<int>(io.MousePos.y),
+                            static_cast<int>(io.MouseWheel));
+
+  if (!io.WantCaptureMouse) {
+    MicroProfileMouseButton(io.MouseDown[ImGuiMouseButton_Left],
+                            io.MouseDown[ImGuiMouseButton_Right]);
+  } else {
+    MicroProfileMouseButton(false, false);
+  }
+
+  {
+    MICROPROFILE_SCOPEGPUI("MicroProfileDraw", 0x88dd44);
+    MICROPROFILE_SCOPEI("Main", "MicroProfileDraw", 0x88dd44);
+
+    glViewport(0, 0, fb_width, fb_height);
+
+    MicroProfileBeginDraw(logical_width, logical_height, 1.0f);
+    MicroProfileDraw(logical_width, logical_height);
+    MicroProfileEndDraw();
+  }
 }
 
 void ModelViewerCamera::draw_ui() {

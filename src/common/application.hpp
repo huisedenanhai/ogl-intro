@@ -15,6 +15,7 @@ public:
   void run();
   float average_frame_time();
   void request_screen_shot();
+  void toggle_profiler_ui();
 
 protected:
   virtual void init() {}
@@ -29,6 +30,8 @@ protected:
   GLFWwindow *_window{};
 
 private:
+  void draw_profiler_ui() const;
+
   GLFWwindow *create_window(const char *name, int width, int height);
 
   static void window_key_callback(
@@ -53,6 +56,7 @@ private:
   void screen_shot();
 
   bool _need_screen_shot = false;
+  bool _display_profiler = false;
   using Clock = std::chrono::high_resolution_clock;
   using TimeSample = Clock::time_point;
   FixSizeQueue<TimeSample> _frame_time_samples;

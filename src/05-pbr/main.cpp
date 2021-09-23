@@ -1,6 +1,7 @@
 #include "../common/application.hpp"
 #include "../common/framebuffer.hpp"
 #include "../common/gltf.hpp"
+#include "../common/profile.h"
 #include "../common/renderer.hpp"
 #include "../common/shader.hpp"
 #include "../common/utils.hpp"
@@ -85,6 +86,9 @@ private:
     }
     if (ImGui::Button("Screen Shot")) {
       request_screen_shot();
+    }
+    if (ImGui::Button("Toggle Profiler")) {
+      toggle_profiler_ui();
     }
     if (ImGui::CollapsingHeader("Camera")) {
       ImGui::PushID(id++);
@@ -180,18 +184,30 @@ private:
           }
         };
 
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    draw_mode(PbrMaterial::Opaque, _pbr_materials);
-    glEnable(GL_BLEND);
-    // disable z-write for transparent objects
-    glDepthMask(GL_FALSE);
-    glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-    // tint objects covered by transparent ones
-    draw_mode(PbrMaterial::Blend, _base_color_materials);
+    {
+      MICROPROFILE_SCOPEGPUI("Opaque Render", 0x122277);
+      MICROPROFILE_SCOPEI("Main", "Opaque Render", 0x122277);
+      glDisable(GL_BLEND);
+      glDepthMask(GL_TRUE);
+      draw_mode(PbrMaterial::Opaque, _pbr_materials);
+    }
+    {
+      MICROPROFILE_SCOPEGPUI("Transparent Tint", 0x17AAFF);
+      MICROPROFILE_SCOPEI("Main", "Transparent Tint", 0x17AAFF);
+      glEnable(GL_BLEND);
+      // disable z-write for transparent objects
+      glDepthMask(GL_FALSE);
+      glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+      // tint objects covered by transparent ones
+      draw_mode(PbrMaterial::Blend, _base_color_materials);
+    }
 
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    draw_mode(PbrMaterial::Blend, _pbr_materials);
+    {
+      MICROPROFILE_SCOPEGPUI("Transparent Lit", 0xBB8122);
+      MICROPROFILE_SCOPEI("Main", "Transparent Lit", 0xBB8122);
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+      draw_mode(PbrMaterial::Blend, _pbr_materials);
+    }
   }
 
   void draw() {
