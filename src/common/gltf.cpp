@@ -267,25 +267,32 @@ void Gltf::load_scene(tinygltf::Model &model) {
     }
 
     auto transform = glm::identity<glm::mat4>();
+    if (node.scale.size() == 3) {
+      transform = glm::scale(transform,
+                             glm::vec3(static_cast<float>(node.scale[0]),
+                                       static_cast<float>(node.scale[1]),
+                                       static_cast<float>(node.scale[2])));
+    }
     if (node.rotation.size() == 4) {
-      glm::quat rotation(node.rotation[0],
-                         node.rotation[1],
-                         node.rotation[2],
-                         node.rotation[3]);
+      glm::quat rotation(static_cast<float>(node.rotation[0]),
+                         static_cast<float>(node.rotation[1]),
+                         static_cast<float>(node.rotation[2]),
+                         static_cast<float>(node.rotation[3]));
       transform = glm::mat4_cast(rotation) * transform;
     }
-    if (node.scale.size() == 3) {
-      transform = glm::scale(
-          transform, glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
-    }
     if (node.translation.size() == 3) {
-      transform = glm::translate(transform,
-                                 glm::vec3(node.translation[0],
-                                           node.translation[1],
-                                           node.translation[2]));
+      transform =
+          glm::translate(transform,
+                         glm::vec3(static_cast<float>(node.translation[0]),
+                                   static_cast<float>(node.translation[1]),
+                                   static_cast<float>(node.translation[2])));
     }
     if (node.matrix.size() == 16) {
-      std::memcpy(&transform, node.matrix.data(), sizeof(transform));
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          transform[i][j] = static_cast<float>(node.matrix[i * 4 + j]);
+        }
+      }
     }
 
     draws.push_back(MeshDraw{node.mesh, transform});
