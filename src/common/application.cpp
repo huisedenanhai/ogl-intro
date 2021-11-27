@@ -264,7 +264,7 @@ void ModelViewerCamera::draw_ui() {
   ImGui::SliderAngle("Pitch", &_pitch, 10.0f, 170.0f);
   ImGui::SliderAngle("Yaw", &_yaw);
   ImGui::SliderFloat("Focus Height", &_focus_height, -3.0f, 3.0f);
-  ImGui::SliderFloat("Distance", &_distance, 0.5f, 5.0f);
+  ImGui::SliderFloat("Distance", &_distance, 0.5f, 30.0f);
 }
 
 glm::vec3 ModelViewerCamera::position() const {

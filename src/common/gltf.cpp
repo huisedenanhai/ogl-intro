@@ -256,45 +256,70 @@ void Gltf::load_meshes(tinygltf::Model &model) {
   }
 }
 
+namespace {
+glm::mat4 gltf_node_local_transform(const tinygltf::Node &node) {
+  glm::vec3 translation{0, 0, 0};
+  glm::quat rotation{1, 0, 0, 0};
+  glm::vec3 scale{1, 1, 1};
+  if (node.translation.size() == 3) {
+    translation = glm::vec3(static_cast<float>(node.translation[0]),
+                            static_cast<float>(node.translation[1]),
+                            static_cast<float>(node.translation[2]));
+  }
+
+  if (node.rotation.size() == 4) {
+    // GLTF quaternion component order [x, y, z, w]
+    // glm quaternion constructor component order [w, x, y, z]
+    rotation = glm::quat(static_cast<float>(node.rotation[3]),
+                         static_cast<float>(node.rotation[0]),
+                         static_cast<float>(node.rotation[1]),
+                         static_cast<float>(node.rotation[2]));
+  }
+
+  if (node.scale.size() == 3) {
+    scale = glm::vec3(static_cast<float>(node.scale[0]),
+                      static_cast<float>(node.scale[1]),
+                      static_cast<float>(node.scale[2]));
+  }
+
+  auto ident = glm::identity<glm::mat4>();
+  auto local_to_parent = glm::translate(ident, translation) *
+                         glm::mat4_cast(rotation) * glm::scale(ident, scale);
+
+  if (node.matrix.size() == 16) {
+    auto matrix = glm::identity<glm::mat4>();
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        local_to_parent[i][j] = static_cast<float>(node.matrix[i * 4 + j]);
+      }
+    }
+  }
+
+  return local_to_parent;
+}
+} // namespace
+
 void Gltf::load_scene(tinygltf::Model &model) {
   auto scene_index = model.defaultScene < 0 ? 0 : model.defaultScene;
   auto &scene = model.scenes[scene_index];
 
   for (int node_index : scene.nodes) {
-    auto &node = model.nodes[node_index];
-    if (node.mesh < 0) {
-      continue;
-    }
+    load_node(model, node_index, glm::identity<glm::mat4>());
+  }
+}
 
-    auto transform = glm::identity<glm::mat4>();
-    if (node.scale.size() == 3) {
-      transform = glm::scale(transform,
-                             glm::vec3(static_cast<float>(node.scale[0]),
-                                       static_cast<float>(node.scale[1]),
-                                       static_cast<float>(node.scale[2])));
-    }
-    if (node.rotation.size() == 4) {
-      glm::quat rotation(static_cast<float>(node.rotation[0]),
-                         static_cast<float>(node.rotation[1]),
-                         static_cast<float>(node.rotation[2]),
-                         static_cast<float>(node.rotation[3]));
-      transform = glm::mat4_cast(rotation) * transform;
-    }
-    if (node.translation.size() == 3) {
-      transform =
-          glm::translate(transform,
-                         glm::vec3(static_cast<float>(node.translation[0]),
-                                   static_cast<float>(node.translation[1]),
-                                   static_cast<float>(node.translation[2])));
-    }
-    if (node.matrix.size() == 16) {
-      for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-          transform[i][j] = static_cast<float>(node.matrix[i * 4 + j]);
-        }
-      }
-    }
+void Gltf::load_node(tinygltf::Model &model,
+                     int node_index,
+                     const glm::mat4 &parent_to_world) {
+  auto &node = model.nodes[node_index];
+  auto local_to_parent = gltf_node_local_transform(node);
+  auto local_to_world = parent_to_world * local_to_parent;
 
-    draws.push_back(MeshDraw{node.mesh, transform});
+  if (node.mesh >= 0) {
+    draws.push_back(MeshDraw{node.mesh, local_to_world});
+  }
+
+  for (auto child_index : node.children) {
+    load_node(model, child_index, local_to_world);
   }
 }
