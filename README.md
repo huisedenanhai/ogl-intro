@@ -1,6 +1,6 @@
 # OpenGL简介
 
-2021年春季学期北京大学本科生图形学课程的样例代码。
+2021&2022年春季学期北京大学本科生图形学课程的样例代码。
 
 ![screenshot](data/screenshot.png)
 
@@ -58,4 +58,15 @@ cmake .. -G Xcode
 open ogl-intro.xcodeproj
 ```
 
+## FQA
 
+### Building on Linux
+
+如果在Linux编译时报错，例如缺少`GL/glu.h`，可能需要手动安装[OpenGL相关依赖](https://www.khronos.org/opengl/wiki/Getting_Started)：
+
+```bash
+sudo apt-get update
+sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
+```
+
+如果在编译glfw过程中提示缺少`lib***`， 需要手动安装[GLFW依赖](https://www.glfw.org/docs/3.3/compile).
