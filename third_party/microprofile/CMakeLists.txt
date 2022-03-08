@@ -1,7 +1,4 @@
-add_library(microprofile INTERFACE
-        microprofile.h
-        microprofiledraw.h
-        microprofileui.h)
+add_library(microprofile INTERFACE)
 
 target_include_directories(microprofile INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
